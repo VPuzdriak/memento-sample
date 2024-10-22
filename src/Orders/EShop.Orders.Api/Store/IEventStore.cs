@@ -9,6 +9,7 @@ internal interface IEventStore
 {
     Task SaveEventsAsync(AggregateRoot aggregate, CancellationToken cancellationToken);
     Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken);
+    Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
 }
 
 internal class InMemoryEventStore : IEventStore
@@ -27,6 +28,8 @@ internal class InMemoryEventStore : IEventStore
         {
             stream.Add(@event.OccuredAtUtc, @event);
         }
+        
+        // When events saved - publish them to the message broker
 
         return Task.CompletedTask;
     }
@@ -35,4 +38,15 @@ internal class InMemoryEventStore : IEventStore
         Task.FromResult<IReadOnlyList<DomainEvent>>(_events.TryGetValue(streamId, out var stream)
             ? stream.Values.ToList()
             : []);
+
+    public Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot
+    {
+        if (!_events.TryGetValue(streamId, out var stream))
+        {
+            return Task.FromResult<T?>(null);
+        }
+
+        var aggregate = AggregateRoot.Load<T>(stream.Values.ToList());
+        return Task.FromResult(aggregate);
+    }
 }

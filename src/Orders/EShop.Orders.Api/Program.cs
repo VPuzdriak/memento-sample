@@ -11,6 +11,7 @@ builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
 var app = builder.Build();
 
 CreateOrderEndpoint.Map(app);
+AddOrderItemEndpoint.Map(app);
 GetOrderEndpoint.Map(app);
 
 app.UseSwagger();

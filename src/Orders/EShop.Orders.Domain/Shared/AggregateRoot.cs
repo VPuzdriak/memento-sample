@@ -4,12 +4,13 @@ namespace EShop.Orders.Domain.Shared;
 
 public abstract class AggregateRoot
 {
-    public Guid Id { get; protected set; }
-    public int Version { get; protected set; }
-    protected List<DomainEvent> Events { get; } = [];
+    private static readonly Dictionary<Type, ConstructorInfo> Constructors = [];
 
-    public IEnumerable<DomainEvent> GetEvents() => Events;
-    public void ClearEvents() => Events.Clear();
+    public Guid Id { get; protected set; }
+    private readonly List<DomainEvent> _events = [];
+
+    public IEnumerable<DomainEvent> GetEvents() => _events;
+    public void ClearEvents() => _events.Clear();
 
     public static T? Load<T>(IReadOnlyList<DomainEvent> events) where T : AggregateRoot
     {
@@ -18,11 +19,7 @@ public abstract class AggregateRoot
             return null;
         }
 
-        var aggregateCtor = typeof(T).GetConstructor(
-            BindingFlags.NonPublic | BindingFlags.Instance,
-            null,
-            Type.EmptyTypes,
-            null);
+        var aggregateCtor = GetPrivateEmptyConstructor<T>();
 
         T aggregate = (T)aggregateCtor!.Invoke(null);
 
@@ -37,11 +34,26 @@ public abstract class AggregateRoot
     protected void Raise<T>(T @event) where T : DomainEvent
     {
         Fold(@event);
-        Events.Add(@event);
+        _events.Add(@event);
     }
 
-    protected virtual void Fold(DomainEvent @event)
+    protected abstract void Fold(DomainEvent @event);
+
+    private static ConstructorInfo GetPrivateEmptyConstructor<T>() where T : AggregateRoot
     {
-        Version++;
+        if (Constructors.TryGetValue(typeof(T), out var ctor))
+        {
+            return ctor;
+        }
+
+        ctor = typeof(T).GetConstructor(
+            BindingFlags.NonPublic | BindingFlags.Instance,
+            null,
+            Type.EmptyTypes,
+            null);
+
+        Constructors[typeof(T)] = ctor ?? throw new InvalidOperationException("Aggregate root must have a private parameterless constructor");
+
+        return ctor;
     }
 }

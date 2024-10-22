@@ -12,8 +12,7 @@ internal static class GetOrderEndpoint
             .MapGet("/orders/{orderId}",
                 async (IEventStore eventStore, Guid orderId, CancellationToken cancellationToken) =>
                 {
-                    var events = await eventStore.GetEventsAsync(orderId, cancellationToken);
-                    var order = AggregateRoot.Load<Order>(events);
+                    var order = await eventStore.LoadAsync<Order>(orderId, cancellationToken);
                     return order is null ? Results.NotFound() : Results.Ok(order);
                 })
             .Produces<Order>()
