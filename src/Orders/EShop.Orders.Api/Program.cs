@@ -9,8 +9,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInMemoryEventStore();
-builder.Services.AddSnapshots<Order>();
-builder.Services.AddReadModels<OrderSpecs, Order>();
+builder.Services.AddSnapshots<Order>("orders");
+builder.Services.AddReadModels<OrderSpecs, Order>("orderSpecs");
 
 var app = builder.Build();
 

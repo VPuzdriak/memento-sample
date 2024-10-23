@@ -1,10 +1,12 @@
 using Memento.Aggregate;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Memento.EventStore.InMemory;
 
-internal sealed class InMemorySnapshotWorker<T>(IEventStore eventStore, ISnapshotStore snapshotStore, ICheckpointsStore checkpointsStore) : BackgroundService where T : AggregateRoot
+internal sealed class InMemorySnapshotWorker<T>(ProjectionSpecs<T> projectionSpecs, IEventStore eventStore, ISnapshotStore snapshotStore, ICheckpointsStore checkpointsStore)
+    : BackgroundService where T : AggregateRoot
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -17,7 +19,7 @@ internal sealed class InMemorySnapshotWorker<T>(IEventStore eventStore, ISnapsho
 
     private async Task UpdateSnapshotsAsync(CancellationToken cancellationToken)
     {
-        var checkpoint = await checkpointsStore.GetCheckpointAsync<T>();
+        var checkpoint = await checkpointsStore.GetCheckpointAsync(projectionSpecs);
         var newEvents = await eventStore.GetEventsMetaFromPositionAsync<T>(checkpoint, cancellationToken);
 
         foreach (var eventsStream in newEvents.GroupBy(meta => meta.AggregateId))
@@ -30,7 +32,7 @@ internal sealed class InMemorySnapshotWorker<T>(IEventStore eventStore, ISnapsho
             snapshot = snapshot is null ? AggregateRoot.Load<T>(events) : AggregateRoot.LoadFromSnapshot(snapshot, events);
 
             await snapshotStore.SaveAsync(snapshot, cancellationToken);
-            await checkpointsStore.SaveCheckpointAsync<T>(newCheckpoint);
+            await checkpointsStore.SaveCheckpointAsync(projectionSpecs, newCheckpoint);
         }
     }
 }

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Memento.EventStore.InMemory;
 
-internal sealed class InMemoryReadModelWorker<TModel, TAggregate>(ICheckpointsStore checkpointsStore, IEventStore eventStore, IReadModelStore readModelStore)
+internal sealed class InMemoryReadModelWorker<TModel, TAggregate>(ProjectionSpecs<TModel> projectionSpecs, ICheckpointsStore checkpointsStore, IEventStore eventStore, IReadModelStore readModelStore)
     : BackgroundService where TModel : ReadModel where TAggregate : AggregateRoot
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -18,7 +18,7 @@ internal sealed class InMemoryReadModelWorker<TModel, TAggregate>(ICheckpointsSt
 
     private async Task UpdateReadModelsAsync(CancellationToken cancellationToken)
     {
-        var checkpoint = await checkpointsStore.GetCheckpointAsync<TModel>();
+        var checkpoint = await checkpointsStore.GetCheckpointAsync(projectionSpecs);
         var newEvents = await eventStore.GetEventsMetaFromPositionAsync<TAggregate>(checkpoint, cancellationToken);
 
         foreach (var eventsStream in newEvents.GroupBy(meta => meta.AggregateId))
@@ -31,7 +31,7 @@ internal sealed class InMemoryReadModelWorker<TModel, TAggregate>(ICheckpointsSt
             snapshot = snapshot is null ? ReadModel.Load<TModel>(events) : ReadModel.LoadFromSnapshot(snapshot, events);
 
             await readModelStore.SaveAsync(snapshot, cancellationToken);
-            await checkpointsStore.SaveCheckpointAsync<TModel>(newCheckpoint);
+            await checkpointsStore.SaveCheckpointAsync(projectionSpecs, newCheckpoint);
         }
     }
 }

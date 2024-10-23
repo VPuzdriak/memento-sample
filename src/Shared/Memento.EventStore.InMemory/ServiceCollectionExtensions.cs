@@ -1,6 +1,7 @@
 using Memento.Aggregate;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Memento.EventStore.InMemory;
 
@@ -16,14 +17,17 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddSnapshots<T>(this IServiceCollection services) where T : AggregateRoot
+    public static IServiceCollection AddSnapshots<T>(this IServiceCollection services, string name, string? version = null) where T : AggregateRoot
     {
+        services.AddSingleton(new ProjectionSpecs<T>(name, version));
         services.AddHostedService<InMemorySnapshotWorker<T>>();
+
         return services;
     }
 
-    public static IServiceCollection AddReadModels<TModel, TAggregate>(this IServiceCollection services) where TModel : ReadModel where TAggregate : AggregateRoot
+    public static IServiceCollection AddReadModels<TModel, TAggregate>(this IServiceCollection services, string name, string? version = null) where TModel : ReadModel where TAggregate : AggregateRoot
     {
+        services.AddSingleton(new ProjectionSpecs<TModel>(name, version));
         services.AddHostedService<InMemoryReadModelWorker<TModel, TAggregate>>();
         return services;
     }

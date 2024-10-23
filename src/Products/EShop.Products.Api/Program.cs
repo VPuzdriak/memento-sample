@@ -9,7 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInMemoryEventStore();
-builder.Services.AddSnapshots<Product>();
+builder.Services.AddSnapshots<Product>("products");
 
 var app = builder.Build();
 
