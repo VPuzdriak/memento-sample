@@ -13,7 +13,7 @@ public sealed class Product : AggregateRoot
         Name = string.Empty;
     }
 
-    public Product(Guid id, string name, decimal price, int quantity)
+    public Product(Guid id, string name, decimal price, int quantity) : this()
     {
         Raise(new ProductCreated(id, name, price, quantity));
     }

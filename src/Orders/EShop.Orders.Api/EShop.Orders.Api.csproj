@@ -8,17 +8,12 @@
 
     <ItemGroup>
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
-      <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.9.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\Shared\Memento.EventStore.InMemory\Memento.EventStore.InMemory.csproj" />
       <ProjectReference Include="..\..\Shared\Memento.EventStore\Memento.EventStore.csproj" />
       <ProjectReference Include="..\EShop.Orders.Domain\EShop.Orders.Domain.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Store\" />
     </ItemGroup>
 
 </Project>
