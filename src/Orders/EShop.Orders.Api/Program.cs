@@ -22,6 +22,4 @@ GetOrderSpecsEndpoint.Map(app);
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.MapGet("/", () => "Hello World!");
-
 app.Run();
