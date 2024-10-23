@@ -36,11 +36,12 @@ internal class InMemoryEventStore : IEventStore
             ? stream.Values.ToList()
             : []);
 
-    public Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaFromPositionAsync(long position, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaFromPositionAsync<T>(long position, CancellationToken cancellationToken) where T : AggregateRoot
     {
+        var aggregateTypeName = GetAggregateTypeName<T>();
         var events = _events
             .SelectMany(eventsStream => eventsStream.Value)
-            .Where(meta => meta.Value.Position > position)
+            .Where(meta => meta.Value.Position > position && meta.Value.AggregateTypeName == aggregateTypeName)
             .Select(meta => meta.Value)
             .ToList();
 
@@ -88,7 +89,7 @@ internal class InMemoryEventStore : IEventStore
         return aggregates;
     }
 
-    private static string GetAggregateTypeName<T>(T? aggregateRoot) where T : AggregateRoot
+    private static string GetAggregateTypeName<T>(T? aggregateRoot = null) where T : AggregateRoot
     {
         var typeName = aggregateRoot is null ? typeof(T).FullName : aggregateRoot.GetType().FullName;
         return typeName ?? throw new InvalidOperationException("Aggregate type is not registered");

@@ -18,7 +18,7 @@ internal sealed class InMemorySnapshotWorker<T>(IEventStore eventStore, ISnapsho
     private async Task UpdateSnapshotsAsync(CancellationToken cancellationToken)
     {
         var checkpoint = await checkpointsStore.GetCheckpointAsync<T>();
-        var newEvents = await eventStore.GetEventsMetaFromPositionAsync(checkpoint, cancellationToken);
+        var newEvents = await eventStore.GetEventsMetaFromPositionAsync<T>(checkpoint, cancellationToken);
 
         foreach (var eventsStream in newEvents.GroupBy(meta => meta.AggregateId))
         {

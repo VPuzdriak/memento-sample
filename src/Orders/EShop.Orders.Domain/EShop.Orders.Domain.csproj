@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Shared\Memento.Aggregate\Memento.Aggregate.csproj" />
+      <ProjectReference Include="..\..\Shared\Memento.EventStore\Memento.EventStore.csproj" />
     </ItemGroup>
 
 </Project>
