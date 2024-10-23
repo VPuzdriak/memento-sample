@@ -7,59 +7,86 @@ namespace EShop.Orders.Api.Store;
 internal interface IEventStore
 {
     Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken);
+    Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaAsync(Guid streamId, CancellationToken cancellationToken);
     Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Stream>> GetStreamsAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot;
     Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
-    Task<IReadOnlyList<T>> LoadAllAggregatesAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot;
+    Task<IReadOnlyList<T>> AggregateStreamsAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot;
 }
 
 internal class InMemoryEventStore : IEventStore
 {
-    private readonly ConcurrentDictionary<Guid, SortedList<DateTime, DomainEvent>> _streams = [];
+    private readonly HashSet<Stream> _streams = [];
+    private readonly ConcurrentDictionary<Guid, SortedList<DateTime, EventMeta<DomainEvent>>> _events = [];
 
     public Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken)
     {
+        var aggregateTypeName = GetAggregateTypeName(aggregate);
+
         var events = aggregate.GetEvents().ToList();
         aggregate.ClearEvents();
 
         // Save events to the database
-        var stream = _streams.GetOrAdd(aggregate.Id, _ => new SortedList<DateTime, DomainEvent>());
+        _streams.Add(new Stream(aggregate.Id, aggregateTypeName));
 
+        var eventsStream = _events.GetOrAdd(aggregate.Id, _ => new SortedList<DateTime, EventMeta<DomainEvent>>());
         foreach (var @event in events)
         {
-            stream.Add(@event.OccuredAtUtc, @event);
+            eventsStream.Add(@event.OccuredAtUtc, new EventMeta<DomainEvent>(aggregateTypeName, @event));
         }
 
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<DomainEvent>>(_streams.TryGetValue(streamId, out var stream)
+    public Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaAsync(Guid streamId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<EventMeta<DomainEvent>>>(_events.TryGetValue(streamId, out var stream)
             ? stream.Values.ToList()
             : []);
 
-    public Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot
+    public async Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken)
     {
-        if (!_streams.TryGetValue(streamId, out var stream))
-        {
-            return Task.FromResult<T?>(null);
-        }
-
-        var events = stream.Values.ToList();
-        if (events.Count == 0)
-        {
-            return Task.FromResult<T?>(null);
-        }
-
-        var aggregate = AggregateRoot.Load<T>(stream.Values.ToList());
-        return Task.FromResult<T?>(aggregate);
+        var eventsMeta = await GetEventsMetaAsync(streamId, cancellationToken);
+        return eventsMeta.Select(meta => meta.Event).ToList();
     }
 
-    public Task<IReadOnlyList<T>> LoadAllAggregatesAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot
+    public Task<IReadOnlyList<Stream>> GetStreamsAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot
     {
-        var aggregates = _streams.Keys
-            .Select(id => AggregateRoot.Load<T>(_streams[id].Values.ToList()))
-            .ToList();
+        var aggregateTypeName = GetAggregateTypeName<T>(default!);
+        var streams = _streams.Where(stream => stream.AggregateTypeName == aggregateTypeName).ToList();
+        return Task.FromResult<IReadOnlyList<Stream>>(streams);
+    }
 
-        return Task.FromResult<IReadOnlyList<T>>(aggregates);
+    public async Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot
+    {
+        var events = await GetEventsAsync(streamId, cancellationToken);
+        return events.Count == 0 ? null : AggregateRoot.Load<T>(events);
+    }
+
+    public async Task<IReadOnlyList<T>> AggregateStreamsAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot
+    {
+        var streams = await GetStreamsAsync<T>(cancellationToken);
+
+        List<T> aggregates = [];
+
+        foreach (var stream in streams)
+        {
+            var events = await GetEventsAsync(stream.Id, cancellationToken);
+
+            if (events.Count == 0)
+            {
+                continue;
+            }
+
+            var aggregate = AggregateRoot.Load<T>(events);
+            aggregates.Add(aggregate);
+        }
+
+        return aggregates;
+    }
+
+    private static string GetAggregateTypeName<T>(T? aggregateRoot) where T : AggregateRoot
+    {
+        var typeName = aggregateRoot is null ? typeof(T).FullName : aggregateRoot.GetType().FullName;
+        return typeName ?? throw new InvalidOperationException("Aggregate type is not registered");
     }
 }

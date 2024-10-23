@@ -15,7 +15,7 @@ internal sealed class SnapshotWorker<T>(IEventStore eventStore, ISnapshotStore s
 
     private async Task CreateSnapshotsAsync(CancellationToken cancellationToken)
     {
-        var aggregates = await eventStore.LoadAllAggregatesAsync<T>(cancellationToken);
+        var aggregates = await eventStore.AggregateStreamsAsync<T>(cancellationToken);
 
         foreach (var aggregate in aggregates)
         {
