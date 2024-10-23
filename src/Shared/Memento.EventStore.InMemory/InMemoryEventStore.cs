@@ -36,6 +36,17 @@ internal sealed class InMemoryEventStore : IEventStore
             ? stream.Values.ToList()
             : []);
 
+    public Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaFromPositionAsync(long position, CancellationToken cancellationToken)
+    {
+        var events = _events
+            .SelectMany(eventsStream => eventsStream.Value)
+            .Where(meta => meta.Value.Position > position)
+            .Select(meta => meta.Value)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<EventMeta<DomainEvent>>>(events);
+    }
+
     public Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaFromPositionAsync<T>(long position, CancellationToken cancellationToken) where T : AggregateRoot
     {
         var aggregateTypeName = GetAggregateTypeName<T>();

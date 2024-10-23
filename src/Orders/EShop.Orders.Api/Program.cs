@@ -1,7 +1,10 @@
 using EShop.Orders.Api.Endpoints;
+using EShop.Orders.Api.EventHandlers;
 using EShop.Orders.Domain;
 
 using Memento.EventStore.InMemory;
+using Memento.EventStreaming;
+using Memento.EventStreaming.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +14,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddInMemoryEventStore();
 builder.Services.AddSnapshots<Order>("orders");
 builder.Services.AddReadModels<OrderSpecs, Order>("orderSpecs");
+
+builder.Services.AddInMemoryEventStreaming();
+builder.Services.AddDomainEventHandler<OrderCreated, OrderCreatedEventHandler>();
 
 var app = builder.Build();
 

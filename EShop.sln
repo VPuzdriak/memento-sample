@@ -25,6 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EShop.Products.Api", "src\P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EShop.Products.Domain", "src\Products\EShop.Products.Domain\EShop.Products.Domain.csproj", "{BEE9A72F-1AF7-4C54-A615-74F4CB4E713A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Memento.EventStreaming", "src\Shared\Memento.EventStreaming\Memento.EventStreaming.csproj", "{B900F66D-10A2-478D-A447-5BB68AF98B27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Memento.EventStreaming.InMemory", "src\Shared\Memento.EventStreaming.InMemory\Memento.EventStreaming.InMemory.csproj", "{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +48,8 @@ Global
 		{6E527F86-2C8C-448B-9246-8493C54EB1D8} = {2DD826BF-8096-477B-88AA-104D2F341C48}
 		{F2E068D2-7CB3-4C83-B8C0-B4785423F29B} = {6E527F86-2C8C-448B-9246-8493C54EB1D8}
 		{BEE9A72F-1AF7-4C54-A615-74F4CB4E713A} = {6E527F86-2C8C-448B-9246-8493C54EB1D8}
+		{B900F66D-10A2-478D-A447-5BB68AF98B27} = {BF2249E7-5F6D-45B0-BCBD-7E5EA06FE08F}
+		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3} = {BF2249E7-5F6D-45B0-BCBD-7E5EA06FE08F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3BD0FF1F-9D7E-4110-9996-5605E8CE3098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -74,5 +80,13 @@ Global
 		{BEE9A72F-1AF7-4C54-A615-74F4CB4E713A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEE9A72F-1AF7-4C54-A615-74F4CB4E713A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEE9A72F-1AF7-4C54-A615-74F4CB4E713A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B900F66D-10A2-478D-A447-5BB68AF98B27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B900F66D-10A2-478D-A447-5BB68AF98B27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B900F66D-10A2-478D-A447-5BB68AF98B27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B900F66D-10A2-478D-A447-5BB68AF98B27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
