@@ -1,52 +1,55 @@
 using System.Collections.Concurrent;
 
-using EShop.Orders.Domain;
 using EShop.Orders.Domain.Shared;
 
 namespace EShop.Orders.Api.Store;
 
 internal interface IEventStore
 {
-    Task SaveEventsAsync(AggregateRoot aggregate, CancellationToken cancellationToken);
+    Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken);
     Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken);
-    Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
+    Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
 }
 
-internal class InMemoryEventStore : IEventStore
+internal class InMemoryEventStore(ISnapshotStore snapshotStore) : IEventStore
 {
-    private readonly ConcurrentDictionary<Guid, SortedList<DateTime, DomainEvent>> _events = [];
+    private readonly ConcurrentDictionary<Guid, SortedList<DateTime, DomainEvent>> _streams = [];
 
-    public Task SaveEventsAsync(AggregateRoot aggregate, CancellationToken cancellationToken)
+    public async Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken)
     {
         var events = aggregate.GetEvents().ToList();
         aggregate.ClearEvents();
 
         // Save events to the database
-        var stream = _events.GetOrAdd(aggregate.Id, _ => new SortedList<DateTime, DomainEvent>());
+        var stream = _streams.GetOrAdd(aggregate.Id, _ => new SortedList<DateTime, DomainEvent>());
 
         foreach (var @event in events)
         {
             stream.Add(@event.OccuredAtUtc, @event);
         }
-        
-        // When events saved - publish them to the message broker
 
-        return Task.CompletedTask;
+        await snapshotStore.SaveAsync(aggregate, cancellationToken);
     }
 
     public Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<DomainEvent>>(_events.TryGetValue(streamId, out var stream)
+        Task.FromResult<IReadOnlyList<DomainEvent>>(_streams.TryGetValue(streamId, out var stream)
             ? stream.Values.ToList()
             : []);
 
-    public Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot
+    public Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot
     {
-        if (!_events.TryGetValue(streamId, out var stream))
+        if (!_streams.TryGetValue(streamId, out var stream))
+        {
+            return Task.FromResult<T?>(null);
+        }
+
+        var events = stream.Values.ToList();
+        if (events.Count == 0)
         {
             return Task.FromResult<T?>(null);
         }
 
         var aggregate = AggregateRoot.Load<T>(stream.Values.ToList());
-        return Task.FromResult(aggregate);
+        return Task.FromResult<T?>(aggregate);
     }
 }

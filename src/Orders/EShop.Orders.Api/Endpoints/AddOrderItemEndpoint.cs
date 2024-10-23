@@ -10,7 +10,7 @@ internal static class AddOrderItemEndpoint
         builder.MapPost("/orders/{orderId}/items", async (IEventStore eventStore, Guid orderId,
             AddOrderItemRequest request, CancellationToken cancellationToken) =>
         {
-            var order = await eventStore.LoadAsync<Order>(orderId, cancellationToken);
+            var order = await eventStore.AggregateAsync<Order>(orderId, cancellationToken);
             if (order is null)
             {
                 return Results.NotFound();
@@ -18,7 +18,7 @@ internal static class AddOrderItemEndpoint
 
             order.AddItem(request.ItemId, request.UnitPrice, request.Quantity);
 
-            await eventStore.SaveEventsAsync(order, cancellationToken);
+            await eventStore.SaveAsync(order, cancellationToken);
 
             return Results.Ok();
         })

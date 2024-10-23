@@ -10,9 +10,9 @@ internal static class GetOrderEndpoint
     {
         builder
             .MapGet("/orders/{orderId}",
-                async (IEventStore eventStore, Guid orderId, CancellationToken cancellationToken) =>
+                async (ISnapshotStore snapshotStore, Guid orderId, CancellationToken cancellationToken) =>
                 {
-                    var order = await eventStore.LoadAsync<Order>(orderId, cancellationToken);
+                    var order = await snapshotStore.LoadAsync<Order>(orderId, cancellationToken);
                     return order is null ? Results.NotFound() : Results.Ok(order);
                 })
             .Produces<Order>()

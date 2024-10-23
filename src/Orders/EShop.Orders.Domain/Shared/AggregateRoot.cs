@@ -12,13 +12,8 @@ public abstract class AggregateRoot
     public IEnumerable<DomainEvent> GetEvents() => _events;
     public void ClearEvents() => _events.Clear();
 
-    public static T? Load<T>(IReadOnlyList<DomainEvent> events) where T : AggregateRoot
+    public static T Load<T>(IReadOnlyList<DomainEvent> events) where T : AggregateRoot
     {
-        if (events.Count == 0)
-        {
-            return null;
-        }
-
         var aggregateCtor = GetPrivateEmptyConstructor<T>();
 
         T aggregate = (T)aggregateCtor!.Invoke(null);

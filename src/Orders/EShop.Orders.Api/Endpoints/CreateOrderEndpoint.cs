@@ -12,7 +12,7 @@ internal static class CreateOrderEndpoint
                 async (CreateOrderRequest request, IEventStore eventStore, CancellationToken cancellationToken) =>
                 {
                     var order = new Order(Guid.NewGuid(), request.CustomerId);
-                    await eventStore.SaveEventsAsync(order, cancellationToken);
+                    await eventStore.SaveAsync(order, cancellationToken);
 
                     return new CreateOrderResponse(order.Id);
                 })
