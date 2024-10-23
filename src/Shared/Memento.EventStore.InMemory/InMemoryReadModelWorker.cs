@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Memento.EventStore.InMemory;
 
-public sealed class InMemoryReadModelWorker<TModel, TAggregate>(ICheckpointsStore checkpointsStore, IEventStore eventStore, IReadModelStore readModelStore)
+internal sealed class InMemoryReadModelWorker<TModel, TAggregate>(ICheckpointsStore checkpointsStore, IEventStore eventStore, IReadModelStore readModelStore)
     : BackgroundService where TModel : ReadModel where TAggregate : AggregateRoot
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

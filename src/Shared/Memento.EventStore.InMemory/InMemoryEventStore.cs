@@ -4,7 +4,7 @@ using Memento.Aggregate;
 
 namespace Memento.EventStore.InMemory;
 
-internal class InMemoryEventStore : IEventStore
+internal sealed class InMemoryEventStore : IEventStore
 {
     private int _latestEventPosition = 0;
 

@@ -4,7 +4,7 @@ using Memento.Aggregate;
 
 namespace Memento.EventStore.InMemory;
 
-public class InMemorySnapshotStore : ISnapshotStore
+internal sealed class InMemorySnapshotStore : ISnapshotStore
 {
     private readonly ConcurrentDictionary<Guid, AggregateRoot> _snapshots = [];
 
