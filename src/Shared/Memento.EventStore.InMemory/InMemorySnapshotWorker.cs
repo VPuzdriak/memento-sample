@@ -1,6 +1,8 @@
-using EShop.Orders.Domain.Shared;
+using Memento.Aggregate;
 
-namespace EShop.Orders.Api.Store;
+using Microsoft.Extensions.Hosting;
+
+namespace Memento.EventStore.InMemory;
 
 internal sealed class InMemorySnapshotWorker<T>(IEventStore eventStore, ISnapshotStore snapshotStore, ICheckpointsStore checkpointsStore) : BackgroundService where T : AggregateRoot
 {

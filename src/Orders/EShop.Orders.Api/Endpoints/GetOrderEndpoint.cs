@@ -1,6 +1,6 @@
-using EShop.Orders.Api.Store;
 using EShop.Orders.Domain;
-using EShop.Orders.Domain.Shared;
+
+using Memento.EventStore;
 
 namespace EShop.Orders.Api.Endpoints;
 

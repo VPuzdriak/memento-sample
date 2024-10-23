@@ -1,14 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace EShop.Orders.Api.Store;
-
-internal interface ICheckpointsStore
-{
-    Task SaveCheckpointAsync(string snapshotName, long checkpoint);
-    Task SaveCheckpointAsync<T>(long checkpoint);
-    Task<long> GetCheckpointAsync(string snapshotName);
-    Task<long> GetCheckpointAsync<T>();
-}
+namespace Memento.EventStore.InMemory;
 
 internal sealed class InMemoryCheckpointsStore : ICheckpointsStore
 {

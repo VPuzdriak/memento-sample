@@ -1,5 +1,5 @@
-using EShop.Orders.Domain.Shared;
+using Memento.Aggregate;
 
-namespace EShop.Orders.Api.Store;
+namespace Memento.EventStore;
 
 public record EventMeta<T>(string AggregateTypeName, Guid AggregateId, T Event, long Position) where T : DomainEvent;

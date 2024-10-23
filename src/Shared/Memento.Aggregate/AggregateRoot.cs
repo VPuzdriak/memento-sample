@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace EShop.Orders.Domain.Shared;
+namespace Memento.Aggregate;
 
 public abstract class AggregateRoot
 {

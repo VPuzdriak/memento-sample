@@ -1,3 +1,3 @@
-namespace EShop.Orders.Domain.Shared;
+namespace Memento.Aggregate;
 
 public abstract record DomainEvent(Guid Id, DateTime OccuredAtUtc);

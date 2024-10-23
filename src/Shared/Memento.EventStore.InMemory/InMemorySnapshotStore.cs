@@ -1,14 +1,8 @@
 using System.Collections.Concurrent;
 
-using EShop.Orders.Domain.Shared;
+using Memento.Aggregate;
 
-namespace EShop.Orders.Api.Store;
-
-public interface ISnapshotStore
-{
-    Task SaveAsync<T>(T aggregate, CancellationToken cancellationToken) where T : AggregateRoot;
-    Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
-}
+namespace Memento.EventStore.InMemory;
 
 public class InMemorySnapshotStore : ISnapshotStore
 {

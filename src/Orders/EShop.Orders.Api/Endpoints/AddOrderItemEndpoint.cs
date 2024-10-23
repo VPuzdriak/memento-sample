@@ -1,5 +1,6 @@
-using EShop.Orders.Api.Store;
 using EShop.Orders.Domain;
+
+using Memento.EventStore;
 
 namespace EShop.Orders.Api.Endpoints;
 

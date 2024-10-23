@@ -1,4 +1,4 @@
-﻿using EShop.Orders.Domain.Shared;
+﻿using Memento.Aggregate;
 
 namespace EShop.Orders.Domain;
 
