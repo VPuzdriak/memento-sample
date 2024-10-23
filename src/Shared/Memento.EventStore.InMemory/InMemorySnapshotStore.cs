@@ -18,4 +18,10 @@ public class InMemorySnapshotStore : ISnapshotStore
         _snapshots.TryGetValue(streamId, out var aggregate)
             ? Task.FromResult<T?>((T)aggregate)
             : Task.FromResult<T?>(null);
+
+    public Task<IReadOnlyList<T>> LoadAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot
+    {
+        var aggregates = _snapshots.Values.OfType<T>().ToList();
+        return Task.FromResult<IReadOnlyList<T>>(aggregates);
+    }
 }

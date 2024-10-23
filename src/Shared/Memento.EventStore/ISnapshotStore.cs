@@ -6,4 +6,5 @@ public interface ISnapshotStore
 {
     Task SaveAsync<T>(T aggregate, CancellationToken cancellationToken) where T : AggregateRoot;
     Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
+    Task<IReadOnlyList<T>> LoadAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot;
 }

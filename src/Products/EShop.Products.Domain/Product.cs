@@ -26,10 +26,10 @@ public sealed class Product : AggregateRoot
                 Fold(created);
                 break;
             case ProductPriceChanged priceChanged:
-                Price = priceChanged.Price;
+                Fold(priceChanged);
                 break;
             case ProductQuantityChanged quantityChanged:
-                Quantity = quantityChanged.Quantity;
+                Fold(quantityChanged);
                 break;
         }
     }
