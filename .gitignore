@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# docker artifacts
+postgres-data/
+
 # dotenv files
 .env
 

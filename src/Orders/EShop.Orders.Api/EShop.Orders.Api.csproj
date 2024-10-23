@@ -13,6 +13,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Shared\Memento.EventStore.InMemory\Memento.EventStore.InMemory.csproj"/>
         <ProjectReference Include="..\..\Shared\Memento.EventStreaming.InMemory\Memento.EventStreaming.InMemory.csproj"/>
+        <ProjectReference Include="..\..\Shared\Memento\Postgres\Memento.EventStore.Postgres\Memento.EventStore.Postgres.csproj" />
         <ProjectReference Include="..\EShop.Orders.Domain\EShop.Orders.Domain.csproj"/>
     </ItemGroup>
 

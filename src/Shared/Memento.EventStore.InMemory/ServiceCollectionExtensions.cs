@@ -19,7 +19,14 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddSnapshots<T>(this IServiceCollection services, string name, string? version = null) where T : AggregateRoot
     {
-        services.AddSingleton(new ProjectionSpecs<T>(name, version));
+        services.AddSingleton(sp =>
+        {
+            var projectionSpecs = new ProjectionSpecs<T>(name, version);
+            var projectionRegistry = sp.GetRequiredService<ProjectionRegistry>();
+            projectionRegistry.AddProjectionSpecs(typeof(T), projectionSpecs);
+            return projectionSpecs;
+        });
+        
         services.AddHostedService<InMemorySnapshotWorker<T>>();
 
         return services;

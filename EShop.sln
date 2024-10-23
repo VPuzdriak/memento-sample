@@ -35,6 +35,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "InMemory", "InMemory", "{23
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgres", "Postgres", "{8F86AA29-0ED2-4D0B-A78C-84DB30AE7B5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Memento.EventStore.Postgres", "src\Shared\Memento\Postgres\Memento.EventStore.Postgres\Memento.EventStore.Postgres.csproj", "{500C4337-D73D-40F9-95A1-9BEB3061F47B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,7 @@ Global
 		{B900F66D-10A2-478D-A447-5BB68AF98B27} = {E3E2681F-2D07-4E1C-A20B-BA057C930CA1}
 		{A0ACE084-E604-4A1C-AF32-148B0C4850CE} = {23E3339C-C67E-45B7-AFE8-29F34D9D8CA1}
 		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3} = {23E3339C-C67E-45B7-AFE8-29F34D9D8CA1}
+		{500C4337-D73D-40F9-95A1-9BEB3061F47B} = {8F86AA29-0ED2-4D0B-A78C-84DB30AE7B5E}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3BD0FF1F-9D7E-4110-9996-5605E8CE3098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -97,5 +100,9 @@ Global
 		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{612DF3F1-5DE9-4990-B3AC-DC620AA667A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500C4337-D73D-40F9-95A1-9BEB3061F47B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500C4337-D73D-40F9-95A1-9BEB3061F47B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500C4337-D73D-40F9-95A1-9BEB3061F47B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500C4337-D73D-40F9-95A1-9BEB3061F47B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
