@@ -9,13 +9,14 @@ internal interface IEventStore
     Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken);
     Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken);
     Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
+    Task<IReadOnlyList<T>> LoadAllAggregatesAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot;
 }
 
-internal class InMemoryEventStore(ISnapshotStore snapshotStore) : IEventStore
+internal class InMemoryEventStore : IEventStore
 {
     private readonly ConcurrentDictionary<Guid, SortedList<DateTime, DomainEvent>> _streams = [];
 
-    public async Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken)
+    public Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken)
     {
         var events = aggregate.GetEvents().ToList();
         aggregate.ClearEvents();
@@ -28,7 +29,7 @@ internal class InMemoryEventStore(ISnapshotStore snapshotStore) : IEventStore
             stream.Add(@event.OccuredAtUtc, @event);
         }
 
-        await snapshotStore.SaveAsync(aggregate, cancellationToken);
+        return Task.CompletedTask;
     }
 
     public Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken) =>
@@ -51,5 +52,14 @@ internal class InMemoryEventStore(ISnapshotStore snapshotStore) : IEventStore
 
         var aggregate = AggregateRoot.Load<T>(stream.Values.ToList());
         return Task.FromResult<T?>(aggregate);
+    }
+
+    public Task<IReadOnlyList<T>> LoadAllAggregatesAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot
+    {
+        var aggregates = _streams.Keys
+            .Select(id => AggregateRoot.Load<T>(_streams[id].Values.ToList()))
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<T>>(aggregates);
     }
 }

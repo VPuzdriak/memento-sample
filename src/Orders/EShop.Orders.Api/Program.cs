@@ -1,5 +1,6 @@
 using EShop.Orders.Api.Endpoints;
 using EShop.Orders.Api.Store;
+using EShop.Orders.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
 builder.Services.AddSingleton<ISnapshotStore, SnapshotStore>();
+
+builder.Services.AddHostedService<SnapshotWorker<Order>>();
 
 var app = builder.Build();
 
