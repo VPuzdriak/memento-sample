@@ -8,9 +8,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
-builder.Services.AddSingleton<ISnapshotStore, SnapshotStore>();
+builder.Services.AddSingleton<ISnapshotStore, InMemorySnapshotStore>();
+builder.Services.AddSingleton<ICheckpointsStore, InMemoryCheckpointsStore>();
 
-builder.Services.AddHostedService<SnapshotWorker<Order>>();
+builder.Services.AddHostedService<InMemorySnapshotWorker<Order>>();
 
 var app = builder.Build();
 

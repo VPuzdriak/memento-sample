@@ -10,7 +10,7 @@ public interface ISnapshotStore
     Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
 }
 
-public class SnapshotStore : ISnapshotStore
+public class InMemorySnapshotStore : ISnapshotStore
 {
     private readonly ConcurrentDictionary<Guid, AggregateRoot> _snapshots = [];
 

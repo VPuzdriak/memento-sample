@@ -8,6 +8,7 @@ internal interface IEventStore
 {
     Task SaveAsync(AggregateRoot aggregate, CancellationToken cancellationToken);
     Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaAsync(Guid streamId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaFromPositionAsync(long position, CancellationToken cancellationToken);
     Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Stream>> GetStreamsAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot;
     Task<T?> AggregateAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot;
@@ -16,6 +17,8 @@ internal interface IEventStore
 
 internal class InMemoryEventStore : IEventStore
 {
+    private int _latestEventPosition = 0;
+
     private readonly HashSet<Stream> _streams = [];
     private readonly ConcurrentDictionary<Guid, SortedList<DateTime, EventMeta<DomainEvent>>> _events = [];
 
@@ -32,7 +35,8 @@ internal class InMemoryEventStore : IEventStore
         var eventsStream = _events.GetOrAdd(aggregate.Id, _ => new SortedList<DateTime, EventMeta<DomainEvent>>());
         foreach (var @event in events)
         {
-            eventsStream.Add(@event.OccuredAtUtc, new EventMeta<DomainEvent>(aggregateTypeName, @event));
+            _latestEventPosition++;
+            eventsStream.Add(@event.OccuredAtUtc, new EventMeta<DomainEvent>(aggregateTypeName, aggregate.Id, @event, _latestEventPosition));
         }
 
         return Task.CompletedTask;
@@ -42,6 +46,17 @@ internal class InMemoryEventStore : IEventStore
         Task.FromResult<IReadOnlyList<EventMeta<DomainEvent>>>(_events.TryGetValue(streamId, out var stream)
             ? stream.Values.ToList()
             : []);
+
+    public Task<IReadOnlyList<EventMeta<DomainEvent>>> GetEventsMetaFromPositionAsync(long position, CancellationToken cancellationToken)
+    {
+        var events = _events
+            .SelectMany(eventsStream => eventsStream.Value)
+            .Where(meta => meta.Value.Position > position)
+            .Select(meta => meta.Value)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<EventMeta<DomainEvent>>>(events);
+    }
 
     public async Task<IReadOnlyList<DomainEvent>> GetEventsAsync(Guid streamId, CancellationToken cancellationToken)
     {

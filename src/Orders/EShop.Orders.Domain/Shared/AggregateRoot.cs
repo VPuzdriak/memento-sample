@@ -16,14 +16,20 @@ public abstract class AggregateRoot
     {
         var aggregateCtor = GetPrivateEmptyConstructor<T>();
 
-        T aggregate = (T)aggregateCtor!.Invoke(null);
-
-        foreach (var @event in events)
-        {
-            aggregate.Fold(@event);
-        }
+        T emptyAggregate = (T)aggregateCtor!.Invoke(null);
+        var aggregate = LoadFromSnapshot(emptyAggregate, events);
 
         return aggregate;
+    }
+
+    public static T LoadFromSnapshot<T>(T snapshot, IReadOnlyList<DomainEvent> events) where T : AggregateRoot
+    {
+        foreach (var @event in events)
+        {
+            snapshot.Fold(@event);
+        }
+
+        return snapshot;
     }
 
     protected void Raise<T>(T @event) where T : DomainEvent
