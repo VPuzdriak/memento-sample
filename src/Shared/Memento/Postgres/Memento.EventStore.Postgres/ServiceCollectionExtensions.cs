@@ -10,8 +10,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<DbConnectionProvider>(_ => new DbConnectionProvider(connectionString));
         services.AddSingleton<ProjectionRegistry>();
-        services.AddSingleton<ISnapshotStore, PostgresSnapshotStore>();
+        
         services.AddSingleton<IEventStore, PostgresEventStore>();
+        services.AddSingleton<ISnapshotStore, PostgresSnapshotStore>();
+        services.AddSingleton<ICheckpointsStore, PostgresCheckpointsStore>();
 
         DefaultTypeMap.MatchNamesWithUnderscores = true;
 
