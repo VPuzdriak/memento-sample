@@ -1,8 +1,11 @@
-using System.Text.Json;
-
 using Dapper;
 
 using Memento.Aggregate;
+using Memento.EventStore.Postgres.Json;
+
+using Newtonsoft.Json;
+
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Memento.EventStore.Postgres;
 
@@ -26,9 +29,18 @@ internal sealed class PostgresSnapshotStore(DbConnectionProvider dbConnectionPro
         ProjectionSpecs projectionSpecs = GetProjectionSpecs<T>();
 
         await using var dbConnection = await dbConnectionProvider.GetConnectionAsync();
-        return await dbConnection.QuerySingleOrDefaultAsync<T>(
-            $"select * from {projectionSpecs.Name} where id = @Id",
+        var projection = await dbConnection.QuerySingleOrDefaultAsync<PostgresProjection>(
+            $"select id, body, body_type_name from {projectionSpecs.Name} where id = @Id",
             new { Id = streamId });
+
+        if (projection is null)
+        {
+            return null;
+        }
+
+        var projectionType = Type.GetType(projection.BodyTypeName)!;
+        return (T)JsonConvert.DeserializeObject(projection.Body, projectionType,
+            new JsonSerializerSettings { ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor, ContractResolver = new PrivateResolver() })!;
     }
 
     public Task<IReadOnlyList<T>> LoadAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot

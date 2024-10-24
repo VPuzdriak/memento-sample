@@ -48,7 +48,7 @@ public abstract class AggregateRoot
         }
 
         ctor = typeof(T).GetConstructor(
-            BindingFlags.NonPublic | BindingFlags.Instance,
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
             null,
             Type.EmptyTypes,
             null);

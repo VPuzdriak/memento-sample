@@ -132,5 +132,3 @@ internal sealed class PostgresEventStore(DbConnectionProvider dbConnectionProvid
         return $"{typeName}, {type.Assembly.GetName().Name}";
     }
 }
-
-internal sealed record PostgresEventMeta(Guid Id, Guid StreamId, string AggregateTypeName, long Position, string Event, string EventTypeName);

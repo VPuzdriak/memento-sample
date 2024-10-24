@@ -46,7 +46,11 @@ public sealed class Order : AggregateRoot
 
     private void Fold(OrderItemAdded @event)
     {
-        // Check if item already exists
+        if (_items.Any(x => x.ItemId == @event.ItemId))
+        {
+            return;
+        }
+
         _items.Add(new OrderItem(@event.ItemId, @event.UnitPrice, @event.Quantity));
     }
 }
