@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEventStore, PostgresEventStore>();
         services.AddSingleton<ISnapshotStore, PostgresSnapshotStore>();
         services.AddSingleton<ICheckpointsStore, PostgresCheckpointsStore>();
+        services.AddSingleton<IReadModelStore, PostgresReadModelStore>();
 
         DefaultTypeMap.MatchNamesWithUnderscores = true;
 

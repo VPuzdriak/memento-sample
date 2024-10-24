@@ -1,6 +1,5 @@
-using Dapper;
+﻿using Dapper;
 
-using Memento.Aggregate;
 using Memento.EventStore.Postgres.Json;
 
 using Newtonsoft.Json;
@@ -9,43 +8,43 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Memento.EventStore.Postgres;
 
-internal sealed class PostgresSnapshotStore(DbConnectionProvider dbConnectionProvider, ProjectionRegistry registry) : ISnapshotStore
+internal sealed class PostgresReadModelStore(DbConnectionProvider dbConnectionProvider, ProjectionRegistry projectionRegistry) : IReadModelStore
 {
-    public async Task SaveAsync<T>(T aggregate, CancellationToken cancellationToken) where T : AggregateRoot
+    public async Task SaveAsync<TModel>(TModel readModel, CancellationToken cancellationToken) where TModel : ReadModel
     {
-        ProjectionSpecs projectionSpecs = GetProjectionSpecs<T>();
+        var projectionSpecs = GetProjectionSpecs<TModel>();
 
         await using var dbConnection = await dbConnectionProvider.GetConnectionAsync();
         await dbConnection.ExecuteAsync(
             $"insert into {projectionSpecs.Name} (id, body, body_type_name) values (@Id, @Body::jsonb, @BodyTypeName) on conflict (id) do update set body = @Body::jsonb, body_type_name = @BodyTypeName",
             new
             {
-                Id = aggregate.Id, Body = JsonSerializer.Serialize(aggregate, aggregate.GetType()), BodyTypeName = $"{aggregate.GetType().FullName}, {aggregate.GetType().Assembly.GetName().Name}"
+                Id = readModel.Id, Body = JsonSerializer.Serialize(readModel, readModel.GetType()), BodyTypeName = $"{readModel.GetType().FullName}, {readModel.GetType().Assembly.GetName().Name}"
             });
     }
 
-    public async Task<T?> LoadAsync<T>(Guid streamId, CancellationToken cancellationToken) where T : AggregateRoot
+    public async Task<TModel?> LoadAsync<TModel>(Guid id, CancellationToken cancellationToken) where TModel : ReadModel
     {
-        ProjectionSpecs projectionSpecs = GetProjectionSpecs<T>();
+        var projectionSpecs = GetProjectionSpecs<TModel>();
 
         await using var dbConnection = await dbConnectionProvider.GetConnectionAsync();
-        var projection = await dbConnection.QuerySingleOrDefaultAsync<PostgresProjection>(
+        var postgresProjection = await dbConnection.QuerySingleOrDefaultAsync<PostgresProjection>(
             $"select id, body, body_type_name from {projectionSpecs.Name} where id = @Id",
-            new { Id = streamId });
+            new { Id = id });
 
-        if (projection is null)
+        if (postgresProjection is null)
         {
             return null;
         }
 
-        var projectionType = Type.GetType(projection.BodyTypeName)!;
-        return (T)JsonConvert.DeserializeObject(projection.Body, projectionType,
+        var projectionType = Type.GetType(postgresProjection.BodyTypeName)!;
+        return (TModel)JsonConvert.DeserializeObject(postgresProjection.Body, projectionType,
             new JsonSerializerSettings { ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor, ContractResolver = new PrivateResolver() })!;
     }
 
-    public async Task<IReadOnlyList<T>> LoadAsync<T>(CancellationToken cancellationToken) where T : AggregateRoot
+    public async Task<IReadOnlyList<TModel>> LoadAsync<TModel>(CancellationToken cancellationToken) where TModel : ReadModel
     {
-        ProjectionSpecs projectionSpecs = GetProjectionSpecs<T>();
+        var projectionSpecs = GetProjectionSpecs<TModel>();
 
         await using var dbConnection = await dbConnectionProvider.GetConnectionAsync();
         var postgresProjections = await dbConnection.QueryAsync<PostgresProjection>(
@@ -59,17 +58,17 @@ internal sealed class PostgresSnapshotStore(DbConnectionProvider dbConnectionPro
         }
 
         var projectionType = Type.GetType(list[0].BodyTypeName)!;
-        return list.Select(postgresProjection => (T)JsonConvert.DeserializeObject(postgresProjection.Body, projectionType,
+        return list.Select(postgresProjection => (TModel)JsonConvert.DeserializeObject(postgresProjection.Body, projectionType,
             new JsonSerializerSettings { ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor, ContractResolver = new PrivateResolver() })!).ToList();
     }
 
-    private ProjectionSpecs GetProjectionSpecs<T>() where T : AggregateRoot
+    private ProjectionSpecs GetProjectionSpecs<T>()
     {
-        var projectionSpecs = registry.GetProjectionSpecs<T>();
+        var projectionSpecs = projectionRegistry.GetProjectionSpecs<T>();
 
         if (projectionSpecs is null)
         {
-            throw new InvalidOperationException($"Projection specs for the aggregate '{typeof(T).FullName}' are not registered.");
+            throw new InvalidOperationException($"Projection specs for the read model '{typeof(T).FullName}' are not registered.");
         }
 
         return projectionSpecs;

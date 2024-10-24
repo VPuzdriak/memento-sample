@@ -19,14 +19,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddSnapshots<T>(this IServiceCollection services, string name, string? version = null) where T : AggregateRoot
     {
-        services.AddSingleton(sp =>
-        {
-            var projectionSpecs = new ProjectionSpecs<T>(name, version);
-            var projectionRegistry = sp.GetRequiredService<ProjectionRegistry>();
-            projectionRegistry.AddProjectionSpecs(typeof(T), projectionSpecs);
-            return projectionSpecs;
-        });
-        
+        services.AddProjectionSpecs<T>(name, version);
         services.AddHostedService<InMemorySnapshotWorker<T>>();
 
         return services;
@@ -34,8 +27,22 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddReadModels<TModel, TAggregate>(this IServiceCollection services, string name, string? version = null) where TModel : ReadModel where TAggregate : AggregateRoot
     {
-        services.AddSingleton(new ProjectionSpecs<TModel>(name, version));
+        services.AddProjectionSpecs<TModel>(name, version);
         services.AddHostedService<InMemoryReadModelWorker<TModel, TAggregate>>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddProjectionSpecs<T>(this IServiceCollection services, string name, string? version = null)
+    {
+        services.AddSingleton(sp =>
+        {
+            var projectionSpecs = new ProjectionSpecs<T>(name, version);
+            var projectionRegistry = sp.GetRequiredService<ProjectionRegistry>();
+            projectionRegistry.AddProjectionSpecs(typeof(T), projectionSpecs);
+            return projectionSpecs;
+        });
+
         return services;
     }
 }
